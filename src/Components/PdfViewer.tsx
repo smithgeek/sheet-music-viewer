@@ -8,9 +8,11 @@ if (typeof document !== "undefined") {
 export default function PdfViewer({
 	pdf,
 	page,
+	numberOfPages,
 }: {
 	pdf: PDFDocumentProxy;
 	page: number;
+	numberOfPages: number;
 }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pageRendering = useRef(false);
@@ -22,8 +24,25 @@ export default function PdfViewer({
 				pdf.getPage(pageNum).then(function (page) {
 					try {
 						const defaultViewport = page.getViewport({ scale: 1 });
-						const newScale = screen.height / defaultViewport.height;
-						const viewport = page.getViewport({ scale: newScale });
+						const newVerticalScale =
+							document.body.clientHeight / defaultViewport.height;
+						const newHorizontalScale =
+							document.body.clientWidth /
+							numberOfPages /
+							defaultViewport.width;
+
+						const newScale = Math.min(
+							newVerticalScale,
+							newHorizontalScale
+						);
+						console.log(
+							newVerticalScale,
+							newHorizontalScale,
+							newScale
+						);
+						const viewport = page.getViewport({
+							scale: newScale,
+						});
 						const canvas = canvasRef.current;
 						if (canvas) {
 							canvas.height = viewport.height;

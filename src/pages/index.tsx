@@ -2,6 +2,7 @@ import SheetMusicViewer from "@/Components/SheetMusicViewer";
 import { Button } from "@/Components/Ui/Button";
 import { Input } from "@/Components/Ui/Input";
 import { Song } from "@/types/Song";
+import { Monitor as MonitorIcon } from "lucide-react";
 import Head from "next/head";
 import { useState } from "react";
 
@@ -50,6 +51,9 @@ export default function Home() {
 				}
 			}
 			setSongs(foundSongs);
+			if (!document.fullscreenElement != null) {
+				document.body.requestFullscreen();
+			}
 		} catch (e) {
 			console.error(e);
 		}
@@ -58,6 +62,13 @@ export default function Home() {
 	const filteredSongs =
 		search === "" ? songs : songs?.filter(s => s.name.includes(search));
 
+	function toggleFullScreen() {
+		if (document.fullscreenElement != null) {
+			document.exitFullscreen();
+		} else {
+			document.body.requestFullscreen();
+		}
+	}
 	return (
 		<>
 			<Head>
@@ -68,13 +79,17 @@ export default function Home() {
 				/>
 				<link rel="icon" href="/favicon.ico" />
 			</Head>
-			<main className="flex flex-col">
+			<main className="flex flex-col w-screen h-screen">
 				{!selectedSong && (
-					<Input
-						value={search}
-						onChange={e => setSearch(e.target.value)}
-						className="m-2"
-					/>
+					<div className="m-2 flex items-center gap-2">
+						<Input
+							value={search}
+							onChange={e => setSearch(e.target.value)}
+						/>
+						<Button onClick={toggleFullScreen} variant="subtle">
+							<MonitorIcon />
+						</Button>
+					</div>
 				)}
 				{songs == null && (
 					<div className="flex justify-center items-center flex-1">
@@ -82,11 +97,13 @@ export default function Home() {
 					</div>
 				)}
 				{!selectedSong && (
-					<div className="grid grid-cols-8 gap-2 flex-1 m-4">
+					<div className="flex flex-col gap-2 flex-1 m-4">
 						{filteredSongs?.map(song => (
 							<Button
+								className="justify-start"
 								key={song.url}
 								onClick={() => setSelectedSong(song)}
+								variant="subtle"
 							>
 								{song.name}
 							</Button>

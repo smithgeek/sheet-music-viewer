@@ -108,120 +108,149 @@ export default function SheetMusicViewer({
 	}
 
 	return (
-		<div
-			style={{
-				flex: 1,
-				height: "100vh",
-				display: "flex",
-				justifyContent: "center",
-			}}
-			{...onShowContextMenu}
-		>
-			{pdfRef && (
-				<>
-					<PdfViewer pdf={pdfRef} page={pages[currentPage - 1]} />
-					{showTwoPages && (
-						<PdfViewer pdf={pdfRef} page={pages[currentPage]} />
-					)}
-				</>
-			)}
-			<Dialog
-				open={showDialog != "hide"}
-				onOpenChange={open => {
-					if (!open) {
-						setShowDialog("hide");
-					}
+		<>
+			<div
+				style={{
+					flex: 1,
+					height: "100vh",
+					display: "flex",
+					justifyContent: "center",
 				}}
 			>
-				<DialogContent onClick={e => e.stopPropagation()}>
-					<div className="flex gap-2 flex-col mt-4">
-						{showDialog === "show" && (
-							<>
-								<Button
-									onClick={() => {
-										onBack();
-										pdfRef?.destroy();
-									}}
-								>
-									Back
-								</Button>
-								<Button
-									onClick={() => {
-										setShowDialog("pageEditor");
-									}}
-								>
-									EditPages
-								</Button>
-							</>
+				{pdfRef && (
+					<>
+						<PdfViewer
+							pdf={pdfRef}
+							page={pages[currentPage - 1]}
+							numberOfPages={showTwoPages ? 2 : 1}
+						/>
+						{showTwoPages && (
+							<PdfViewer
+								pdf={pdfRef}
+								page={pages[currentPage]}
+								numberOfPages={2}
+							/>
 						)}
-						{showDialog === "pageEditor" && (
-							<ScrollArea className="h-[70vh] pr-4">
-								<div className="flex flex-col gap-2">
-									{pages.map((p, index) => (
-										<div
-											key={`${index}-${p}`}
-											className="flex gap-2 items-center"
-										>
-											<Input
-												value={p}
-												type="number"
-												min={1}
-												max={pdfRef?.numPages ?? 1}
-												onChange={e =>
-													setPages(pgs => {
-														const value = parseInt(
-															e.target.value
-														);
-														if (
-															value > 0 &&
-															value <=
-																(pdfRef?.numPages ??
-																	0)
-														) {
-															pgs[index] = value;
-														}
-													})
-												}
-											/>
-											<Button
-												variant="destructive"
-												onClick={() => {
-													setPages(pgs => {
-														pgs.splice(index, 1);
-													});
-												}}
+					</>
+				)}
+				<Dialog
+					open={showDialog != "hide"}
+					onOpenChange={open => {
+						if (!open) {
+							setShowDialog("hide");
+						}
+					}}
+				>
+					<DialogContent onClick={e => e.stopPropagation()}>
+						<div className="flex gap-2 flex-col mt-4">
+							{showDialog === "show" && (
+								<>
+									<Button
+										onClick={() => {
+											onBack();
+											pdfRef?.destroy();
+										}}
+									>
+										Back
+									</Button>
+									<Button
+										onClick={() => {
+											setShowDialog("pageEditor");
+										}}
+									>
+										EditPages
+									</Button>
+								</>
+							)}
+							{showDialog === "pageEditor" && (
+								<ScrollArea className="h-[70vh] pr-4">
+									<div className="flex flex-col gap-2">
+										{pages.map((p, index) => (
+											<div
+												key={`${index}-${p}`}
+												className="flex gap-2 items-center"
 											>
-												<TrashIcon />
-											</Button>
-										</div>
-									))}
-								</div>
-								<div className="flex gap-2 items-center mt-2">
-									<Button
-										className="flex-1"
-										onClick={() => {
-											setPages(pgs => {
-												pgs.push(pdfRef?.numPages ?? 1);
-											});
-										}}
-									>
-										Add
-									</Button>
-									<Button
-										className="flex-1"
-										onClick={() => {
-											save();
-											setShowDialog("show");
-										}}
-									>
-										Save
-									</Button>
-								</div>
-							</ScrollArea>
-						)}
-					</div>
-				</DialogContent>
-			</Dialog>
-		</div>
+												<Input
+													value={p}
+													type="number"
+													min={1}
+													max={pdfRef?.numPages ?? 1}
+													onChange={e =>
+														setPages(pgs => {
+															const value =
+																parseInt(
+																	e.target
+																		.value
+																);
+															if (
+																value > 0 &&
+																value <=
+																	(pdfRef?.numPages ??
+																		0)
+															) {
+																pgs[index] =
+																	value;
+															}
+														})
+													}
+												/>
+												<Button
+													variant="destructive"
+													onClick={() => {
+														setPages(pgs => {
+															pgs.splice(
+																index,
+																1
+															);
+														});
+													}}
+												>
+													<TrashIcon />
+												</Button>
+											</div>
+										))}
+									</div>
+									<div className="flex gap-2 items-center mt-2">
+										<Button
+											className="flex-1"
+											onClick={() => {
+												setPages(pgs => {
+													pgs.push(
+														pdfRef?.numPages ?? 1
+													);
+												});
+											}}
+										>
+											Add
+										</Button>
+										<Button
+											className="flex-1"
+											onClick={() => {
+												save();
+												setShowDialog("show");
+											}}
+										>
+											Save
+										</Button>
+									</div>
+								</ScrollArea>
+							)}
+						</div>
+					</DialogContent>
+				</Dialog>
+			</div>
+			<div className="absolute top-0 bottom-0 right-0 left-0 flex">
+				<div
+					className="flex-1"
+					{...onShowContextMenu}
+					onClick={() => prevPage()}
+				></div>
+				<div
+					className="flex-1"
+					{...onShowContextMenu}
+					onClick={() => nextPage()}
+				></div>
+			</div>
+		</>
 	);
 }
