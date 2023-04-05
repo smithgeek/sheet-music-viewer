@@ -1,0 +1,21 @@
+<html>
+
+<head>
+	<script src="https://www.unpkg.com/socket.io-client@4.6.1/dist/socket.io.min.js" crossorigin="anonymous"
+		type="text/javascript"></script>
+</head>
+
+<body>
+	client
+	<script>
+		const socket = io("http://localhost:8080");
+		socket.connect();
+		socket.emit("join", "orange");
+		socket.on("message", message => {
+			console.log(message);
+		})
+		socket.emit("message", { room: "orange", message: "hello from client" });
+	</script>
+</body>
+
+</html>

@@ -1,5 +1,6 @@
 import { useHotKeys } from "@/hooks/useHotKey";
 import useLongPress from "@/lib/onLongPress";
+import { cn } from "@/lib/utils";
 import { Song } from "@/types/Song";
 import { TrashIcon } from "lucide-react";
 import * as pdfjsLib from "pdfjs-dist";
@@ -41,22 +42,26 @@ export default function SheetMusicViewer({
 
 	useHotKeys(
 		e => {
-			if (
-				(e.key === "ArrowRight" ||
-					e.key === "PageDown" ||
-					e.key === "ArrowDown") &&
-				e.type === "keydown" &&
-				currentPage < pages.length
-			) {
-				nextPage();
-			} else if (
-				(e.key === "ArrowLeft" ||
-					e.key === "PageUp" ||
-					e.key === "ArrowUp") &&
-				e.type === "keydown" &&
-				currentPage > 0
-			) {
-				prevPage();
+			if (e.type === "keydown" && !e.repeat) {
+				if (
+					(e.key === "ArrowRight" ||
+						e.key === "PageDown" ||
+						e.key === "ArrowDown") &&
+					currentPage < pages.length
+				) {
+					nextPage();
+				} else if (
+					(e.key === "ArrowLeft" ||
+						e.key === "PageUp" ||
+						e.key === "ArrowUp") &&
+					currentPage > 0
+				) {
+					prevPage();
+				} else if (e.key === "Home") {
+					setCurrentPage(1);
+				} else if (e.key === "End") {
+					setCurrentPage(pages.length - 1);
+				}
 			}
 		},
 		"pdfPageViewer",
@@ -106,7 +111,10 @@ export default function SheetMusicViewer({
 			console.error(e);
 		}
 	}
-
+	let allPages = [];
+	for (let i = 0; i <= (pdfRef?.numPages ?? -1); ++i) {
+		allPages.push(i);
+	}
 	return (
 		<>
 			<div
@@ -119,17 +127,32 @@ export default function SheetMusicViewer({
 			>
 				{pdfRef && (
 					<>
-						<PdfViewer
-							pdf={pdfRef}
-							page={pages[currentPage - 1]}
-							numberOfPages={showTwoPages ? 2 : 1}
-						/>
-						{showTwoPages && (
+						{allPages.map(pageIndex => (
 							<PdfViewer
+								key={pageIndex}
 								pdf={pdfRef}
-								page={pages[currentPage]}
-								numberOfPages={2}
+								page={pageIndex}
+								numberOfPages={showTwoPages ? 2 : 1}
+								className={cn({
+									hidden: pageIndex != pages[currentPage - 1],
+								})}
 							/>
+						))}
+						{showTwoPages && (
+							<>
+								{allPages.map(pageIndex => (
+									<PdfViewer
+										key={pageIndex}
+										pdf={pdfRef}
+										page={pageIndex}
+										numberOfPages={2}
+										className={cn({
+											hidden:
+												pageIndex != pages[currentPage],
+										})}
+									/>
+								))}
+							</>
 						)}
 					</>
 				)}

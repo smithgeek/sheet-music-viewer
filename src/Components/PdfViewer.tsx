@@ -9,10 +9,12 @@ export default function PdfViewer({
 	pdf,
 	page,
 	numberOfPages,
+	className,
 }: {
 	pdf: PDFDocumentProxy;
 	page: number;
 	numberOfPages: number;
+	className?: string;
 }) {
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const pageRendering = useRef(false);
@@ -69,5 +71,5 @@ export default function PdfViewer({
 		renderPage(page);
 	}, [page, renderPage]);
 
-	return <canvas ref={canvasRef}></canvas>;
+	return <canvas ref={canvasRef} className={className}></canvas>;
 }

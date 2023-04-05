@@ -1,0 +1,14 @@
+{
+	"name": "sheet_music_signaling",
+	"version": "1.0.0",
+	"description": "Node.js on Docker",
+	"author": "Brent Smith <brent@smithgeek.com.com>",
+	"main": "server.js",
+	"scripts": {
+		"start": "node server.js"
+	},
+	"dependencies": {
+		"node-static": "^0.7.11",
+		"socket.io": "^4.6.1"
+	}
+}
