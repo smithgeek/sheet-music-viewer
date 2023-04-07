@@ -2,9 +2,10 @@ import SheetMusicViewer from "@/Components/SheetMusicViewer";
 import { Button } from "@/Components/Ui/Button";
 import { Input } from "@/Components/Ui/Input";
 import { Song } from "@/types/Song";
+import { get as getFromIdb, set as setIdbValue } from "idb-keyval";
 import { Monitor as MonitorIcon } from "lucide-react";
 import Head from "next/head";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 declare const window: any;
 
@@ -16,6 +17,21 @@ function getSongName(name: string) {
 		.replaceAll("-", " ");
 }
 
+async function getDirectoryHandle() {
+	const handle: FileSystemDirectoryHandle | undefined = await getFromIdb(
+		"directory"
+	);
+	if (handle) {
+		return handle;
+	}
+	const dirHandle: FileSystemDirectoryHandle | undefined =
+		await window.showDirectoryPicker();
+	if (dirHandle) {
+		await setIdbValue("directory", dirHandle);
+	}
+	return dirHandle;
+}
+
 export default function Home() {
 	const [songs, setSongs] = useState<null | Song[]>(null);
 	const [selectedSong, setSelectedSong] = useState<Song | null>(null);
@@ -23,41 +39,49 @@ export default function Home() {
 
 	async function load() {
 		try {
-			const dirHandle: FileSystemDirectoryHandle =
-				await window.showDirectoryPicker();
-			const foundSongs: Song[] = [];
-			for await (const entry of dirHandle.values()) {
-				if (entry.kind === "file") {
-					const file = await entry.getFile();
-					if (entry.name.includes(".json")) {
-						const json = await file.text();
-						const song = JSON.parse(json) as Song;
-						foundSongs.push(song);
-					} else if (entry.name.includes(".pdf")) {
-						const existing = foundSongs.find(
-							s => s.name === getSongName(entry.name)
-						);
-						const url = URL.createObjectURL(file);
-						if (existing) {
-							existing.url = url;
-						} else {
-							foundSongs.push({
-								name: getSongName(entry.name),
-								pages: [],
-								url,
-							});
+			const dirHandle: FileSystemDirectoryHandle | undefined =
+				await getDirectoryHandle();
+			if (dirHandle) {
+				const foundSongs: Song[] = [];
+				for await (const entry of dirHandle.values()) {
+					if (entry.kind === "file") {
+						const file = await entry.getFile();
+						if (entry.name.includes(".json")) {
+							const json = await file.text();
+							const song = JSON.parse(json) as Song;
+							foundSongs.push(song);
+						} else if (entry.name.includes(".pdf")) {
+							const existing = foundSongs.find(
+								s => s.name === getSongName(entry.name)
+							);
+							const url = URL.createObjectURL(file);
+							if (existing) {
+								existing.url = url;
+							} else {
+								foundSongs.push({
+									name: getSongName(entry.name),
+									pages: [],
+									url,
+								});
+							}
 						}
 					}
 				}
-			}
-			setSongs(foundSongs);
-			if (!document.fullscreenElement != null) {
-				document.body.requestFullscreen();
+				setSongs(foundSongs);
+				if (!document.fullscreenElement != null) {
+					document.body.requestFullscreen();
+				}
 			}
 		} catch (e) {
 			console.error(e);
 		}
 	}
+
+	useEffect(() => {
+		if (navigator.userAgent.toLowerCase().indexOf(" electron/") > -1) {
+			load();
+		}
+	}, []);
 
 	const filteredSongs =
 		search === "" ? songs : songs?.filter(s => s.name.includes(search));
