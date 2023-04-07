@@ -5,7 +5,7 @@ import { Song } from "@/types/Song";
 import { get as getFromIdb, set as setIdbValue } from "idb-keyval";
 import { Monitor as MonitorIcon } from "lucide-react";
 import Head from "next/head";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 declare const window: any;
 
@@ -18,14 +18,13 @@ function getSongName(name: string) {
 }
 
 async function getDirectoryHandle() {
-	const handle: FileSystemDirectoryHandle | undefined = await getFromIdb(
-		"directory"
-	);
-	if (handle) {
-		return handle;
-	}
+	const existingHandle: FileSystemDirectoryHandle | undefined =
+		await getFromIdb("directory");
 	const dirHandle: FileSystemDirectoryHandle | undefined =
-		await window.showDirectoryPicker();
+		await window.showDirectoryPicker({
+			id: "sheet-music-viewer",
+			startIn: existingHandle,
+		});
 	if (dirHandle) {
 		await setIdbValue("directory", dirHandle);
 	}
@@ -76,12 +75,6 @@ export default function Home() {
 			console.error(e);
 		}
 	}
-
-	useEffect(() => {
-		if (navigator.userAgent.toLowerCase().indexOf(" electron/") > -1) {
-			load();
-		}
-	}, []);
 
 	const filteredSongs =
 		search === "" ? songs : songs?.filter(s => s.name.includes(search));
