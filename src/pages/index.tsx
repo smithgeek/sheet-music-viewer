@@ -2,10 +2,9 @@ import SheetMusicViewer from "@/Components/SheetMusicViewer";
 import { Button } from "@/Components/Ui/Button";
 import { Input } from "@/Components/Ui/Input";
 import { Song } from "@/types/Song";
-import { get as getFromIdb, set as setIdbValue } from "idb-keyval";
 import { Monitor as MonitorIcon } from "lucide-react";
 import Head from "next/head";
-import { useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 
 declare const window: any;
 
@@ -18,16 +17,10 @@ function getSongName(name: string) {
 }
 
 async function getDirectoryHandle() {
-	const existingHandle: FileSystemDirectoryHandle | undefined =
-		await getFromIdb("directory");
 	const dirHandle: FileSystemDirectoryHandle | undefined =
 		await window.showDirectoryPicker({
 			id: "sheet-music-viewer",
-			startIn: existingHandle,
 		});
-	if (dirHandle) {
-		await setIdbValue("directory", dirHandle);
-	}
 	return dirHandle;
 }
 
@@ -86,6 +79,13 @@ export default function Home() {
 			document.body.requestFullscreen();
 		}
 	}
+	const onSearchInputChange = useCallback(
+		(e: ChangeEvent<HTMLInputElement>) => {
+			setSearch(e.target.value);
+			console.log("change", e.target.value);
+		},
+		[setSearch]
+	);
 	return (
 		<>
 			<Head>
@@ -99,10 +99,7 @@ export default function Home() {
 			<main className="flex flex-col w-screen h-screen">
 				{!selectedSong && (
 					<div className="m-2 flex items-center gap-2">
-						<Input
-							value={search}
-							onChange={e => setSearch(e.target.value)}
-						/>
+						<Input value={search} onChange={onSearchInputChange} />
 						<Button onClick={toggleFullScreen} variant="subtle">
 							<MonitorIcon />
 						</Button>
@@ -130,7 +127,12 @@ export default function Home() {
 				{selectedSong && (
 					<SheetMusicViewer
 						song={selectedSong}
-						onBack={() => setSelectedSong(null)}
+						onBack={s => {
+							setSelectedSong(null);
+							if (s) {
+								setSearch(s);
+							}
+						}}
 					/>
 				)}
 			</main>

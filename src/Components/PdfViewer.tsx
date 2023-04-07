@@ -37,11 +37,6 @@ export default function PdfViewer({
 							newVerticalScale,
 							newHorizontalScale
 						);
-						console.log(
-							newVerticalScale,
-							newHorizontalScale,
-							newScale
-						);
 						const viewport = page.getViewport({
 							scale: newScale,
 						});

@@ -21,7 +21,7 @@ export default function SheetMusicViewer({
 	onBack,
 }: {
 	song: Song;
-	onBack: () => void;
+	onBack: (search?: string) => void;
 }) {
 	const pdfLoaded = useRef(false);
 	const [pdfRef, setPdfRef] = useState<PDFDocumentProxy | null>(null);
@@ -61,6 +61,10 @@ export default function SheetMusicViewer({
 					setCurrentPage(1);
 				} else if (e.key === "End") {
 					setCurrentPage(pages.length - 1);
+				} else if (e.key === "`") {
+					setShowDialog("show");
+				} else {
+					onBack(e.key);
 				}
 			}
 		},
